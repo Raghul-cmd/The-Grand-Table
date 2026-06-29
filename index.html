@@ -665,7 +665,35 @@ footer{background:#040403;border-top:1px solid var(--dim);}
    Get from: supabase.com → Your Project → Settings → API     */
 const SUPABASE_URL  = 'https://afyxyowonhvwbwtdcrkt.supabase.co';
 const SUPABASE_ANON = 'YOUR_SUPABASE_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmeXh5b3dvbmh2d2J3dGRjcmt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTQxNTgsImV4cCI6MjA5ODI5MDE1OH0.A5_hda9PAbATb0J_gD9bTl9O6VXatHcKV25hE4nXupYANON_KEY_HERE';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const FALLBACK_MENU = [
+  {id:'m1', name:'Butter Chicken', description:'Rich creamy tomato curry with tender chicken.', price:450, category:'Main Course', image_url:'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400', is_available:true, is_signature:true, is_bestseller:true},
+  {id:'m2', name:'Dal Makhani', description:'Slow-cooked black lentils with butter and cream.', price:320, category:'Main Course', image_url:'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400', is_available:true, is_signature:false, is_bestseller:true},
+  {id:'m3', name:'Tandoori Platter', description:'Assorted tandoor specialties with mint chutney.', price:680, category:'Starters', image_url:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400', is_available:true, is_signature:true, is_bestseller:false},
+  {id:'m4', name:'Royal Biryani', description:'Aromatic saffron basmati rice with slow-cooked meat.', price:550, category:'Rice', image_url:'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400', is_available:true, is_signature:true, is_bestseller:true},
+  {id:'m5', name:'Paneer Tikka', description:'Marinated cottage cheese grilled in tandoor.', price:380, category:'Starters', image_url:'https://images.unsplash.com/photo-1567188040759-fb8a254b6756?w=400', is_available:true, is_signature:false, is_bestseller:true},
+  {id:'m6', name:'Gulab Jamun', description:'Soft milk dumplings in rose-flavored sugar syrup.', price:180, category:'Desserts', image_url:'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400', is_available:true, is_signature:false, is_bestseller:true}
+];
+const FALLBACK_GALLERY = [
+  {image_url:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800', caption:'Signature dining room', category:'store'},
+  {image_url:'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800', caption:'Chef preparing a special tasting', category:'infrastructure'}
+];
+const FALLBACK_PRESS = [
+  {title:'Best Fine Dining Restaurant 2024', publication:'Times Food Awards', date:'2024-03-15', link:'https://example.com'},
+  {title:'Top 10 Restaurants in South India', publication:'Condé Nast Traveller IN', date:'2024-01-20', link:'https://example.com'}
+];
+const FALLBACK_TESTIMONIALS = [
+  {customer_name:'Priya Sharma', review:'The finest dining experience in Chennai. Every dish was a masterpiece.', rating:5, date:'2024-11-15'},
+  {customer_name:'Raj Kumar', review:'Came for our anniversary. The Signature Biryani was out of this world!', rating:5, date:'2024-10-20'}
+];
+const FALLBACK_ARTICLES = [
+  {title:'The Art of Indian Spice Blending', content:'Discover how our chefs masterfully blend over 30 spices to create the perfect balance of flavours.', image_url:'https://images.unsplash.com/photo-1506368249639-73a05d6f6488?w=400', author:'Chef Arjun Nair', category:'Culinary Arts', published_at:'2024-06-20T00:00:00Z'},
+  {title:'Farm to Table: Our Ingredient Philosophy', content:'We believe the finest cuisine begins with the finest ingredients.', image_url:'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400', author:'Preethi Menon', category:'Food Culture', published_at:'2024-06-15T00:00:00Z'}
+];
+const hasValidSupabaseConfig = Boolean(
+  SUPABASE_URL && SUPABASE_URL.includes('supabase.co') &&
+  SUPABASE_ANON && !SUPABASE_ANON.includes('YOUR_') && SUPABASE_ANON.length > 40
+);
+const sb = hasValidSupabaseConfig ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
 /* ── 2. STORE LOCATIONS ───────────────────────────────────────
    EDIT: Replace all 5 entries with your real branch info      */
@@ -780,9 +808,24 @@ function hdrLogin(){
 /* ═══════════════════════════════════════════════════════════════
    MENU
 ═══════════════════════════════════════════════════════════════ */
+async function safeSupabaseQuery(request, fallback){
+  if(!sb) return fallback;
+  try{
+    const {data,error}=await request();
+    if(error) throw error;
+    return data || fallback;
+  }catch(error){
+    console.warn('Supabase query failed, using fallback content.', error);
+    return fallback;
+  }
+}
+
 let allMenu=[];
 async function loadMenu(){
-  const {data}=await sb.from('menu_items').select('*').eq('is_available',true).order('category');
+  const data=await safeSupabaseQuery(
+    () => sb.from('menu_items').select('*').eq('is_available',true).order('category'),
+    FALLBACK_MENU.filter(i=>i.is_available)
+  );
   allMenu=data||[];
   const cats=[...new Set(allMenu.map(i=>i.category))];
   const bar=document.getElementById('cbar');
@@ -816,7 +859,10 @@ function filterMenu(cat,btn){
 ═══════════════════════════════════════════════════════════════ */
 let allGal=[];
 async function loadGallery(){
-  const {data}=await sb.from('gallery').select('*').order('created_at',{ascending:false});
+  const data=await safeSupabaseQuery(
+    () => sb.from('gallery').select('*').order('created_at',{ascending:false}),
+    FALLBACK_GALLERY
+  );
   allGal=data||[]; renderGal(allGal);
 }
 function renderGal(items){
@@ -884,7 +930,10 @@ function findBranch(){
    SIGNATURE DISHES
 ═══════════════════════════════════════════════════════════════ */
 async function loadSig(){
-  const {data}=await sb.from('menu_items').select('*').eq('is_signature',true).eq('is_available',true).limit(3);
+  const data=await safeSupabaseQuery(
+    () => sb.from('menu_items').select('*').eq('is_signature',true).eq('is_available',true).limit(3),
+    FALLBACK_MENU.filter(i=>i.is_signature && i.is_available).slice(0,3)
+  );
   const g=document.getElementById('sigGrid');
   if(!data||!data.length){ g.innerHTML=`<p style="color:var(--muted);text-align:center;grid-column:span 3;padding:40px 0">Coming soon.</p>`; return; }
   g.innerHTML=data.map(i=>`
@@ -901,7 +950,10 @@ async function loadSig(){
    BEST SELLERS
 ═══════════════════════════════════════════════════════════════ */
 async function loadBS(){
-  const {data}=await sb.from('menu_items').select('*').eq('is_bestseller',true).eq('is_available',true).limit(6);
+  const data=await safeSupabaseQuery(
+    () => sb.from('menu_items').select('*').eq('is_bestseller',true).eq('is_available',true).limit(6),
+    FALLBACK_MENU.filter(i=>i.is_bestseller && i.is_available).slice(0,6)
+  );
   const g=document.getElementById('bsGrid');
   if(!data||!data.length){ g.innerHTML=`<p style="color:var(--muted);text-align:center;grid-column:span 2;padding:40px 0">Coming soon.</p>`; return; }
   g.innerHTML=data.map((i,idx)=>`
@@ -922,7 +974,10 @@ async function loadBS(){
 ═══════════════════════════════════════════════════════════════ */
 const PICO=['fa-award','fa-newspaper','fa-trophy','fa-star','fa-medal','fa-crown'];
 async function loadPress(){
-  const {data}=await sb.from('press').select('*').order('date',{ascending:false}).limit(6);
+  const data=await safeSupabaseQuery(
+    () => sb.from('press').select('*').order('date',{ascending:false}).limit(6),
+    FALLBACK_PRESS
+  );
   const g=document.getElementById('pressGrid');
   if(!data||!data.length){ g.innerHTML=`<p style="color:var(--muted);text-align:center;grid-column:span 3;padding:40px 0">Coming soon.</p>`; return; }
   g.innerHTML=data.map((p,i)=>`
@@ -941,7 +996,10 @@ async function loadPress(){
 ═══════════════════════════════════════════════════════════════ */
 let slIdx=0;
 async function loadTestimonials(){
-  const {data}=await sb.from('testimonials').select('*').eq('is_approved',true).order('created_at',{ascending:false});
+  const data=await safeSupabaseQuery(
+    () => sb.from('testimonials').select('*').eq('is_approved',true).order('created_at',{ascending:false}),
+    FALLBACK_TESTIMONIALS
+  );
   const t=document.getElementById('slTrack');
   if(!data||!data.length){ t.innerHTML=`<p style="color:var(--muted);padding:40px 0">No reviews yet.</p>`; return; }
   t.innerHTML=data.map(r=>`
@@ -971,7 +1029,10 @@ function slide(dir){
    FOOD ARTICLES
 ═══════════════════════════════════════════════════════════════ */
 async function loadArticles(){
-  const {data}=await sb.from('articles').select('*').order('published_at',{ascending:false}).limit(3);
+  const data=await safeSupabaseQuery(
+    () => sb.from('articles').select('*').order('published_at',{ascending:false}).limit(3),
+    FALLBACK_ARTICLES
+  );
   const g=document.getElementById('artGrid');
   if(!data||!data.length){ g.innerHTML=`<p style="color:var(--muted);text-align:center;grid-column:span 3;padding:40px 0">Coming soon.</p>`; return; }
   g.innerHTML=data.map(a=>`
