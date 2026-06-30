@@ -216,8 +216,23 @@ async function loadMenu() {
 
   allMenuItems = data || [];
 
-  // Build category filter buttons
+  const categoryOrder = ['salad', 'soup', 'starters', 'main course', 'rice', 'desserts'];
+  const getCategoryIndex = (cat) => {
+    const idx = categoryOrder.indexOf((cat || '').toLowerCase());
+    return idx === -1 ? categoryOrder.length : idx;
+  };
+
+  allMenuItems.sort((a, b) => {
+    const ai = getCategoryIndex(a.category);
+    const bi = getCategoryIndex(b.category);
+    if (ai !== bi) return ai - bi;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  // Build category filter buttons in the desired order
   const categories = [...new Set(allMenuItems.map(i => i.category))];
+  categories.sort((a, b) => getCategoryIndex(a) - getCategoryIndex(b) || a.localeCompare(b));
+
   const bar = document.getElementById('catBar');
   bar.innerHTML =
     `<button class="cat-pill active" onclick="filterMenu('all', this)">All</button>` +
