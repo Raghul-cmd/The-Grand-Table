@@ -8,8 +8,8 @@
    SECTION 1: SUPABASE CONFIGURATION
    Get these from: supabase.com → Your Project → Settings → API
 ══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL  = 'https://jwiwollnpjqskthrfnsc.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3aXdvbGxucGpxc2t0aHJmbnNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDIwMzcsImV4cCI6MjA5ODM3ODAzN30.9ysuA-JzaKxTs6AZvXNJNAsbRtm9m5mjZOqmyW92BlU';
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL_HERE';
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY_HERE';
 
 /* ══════════════════════════════════════════════════════════════
    SECTION 2: STORE LOCATIONS
@@ -85,13 +85,6 @@ function showToast(msg, ms = 3500) {
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function handleError(error, fallback = 'Something went wrong.') {
-  if (!error) return false;
-  console.error(error);
-  showToast(fallback);
-  return true;
-}
 
 // Close modal when clicking backdrop
 document.querySelectorAll('.overlay').forEach(o => {
@@ -215,19 +208,15 @@ function handleHeaderLogin() {
 let allMenuItems = [];
 
 async function loadMenu() {
-  const { data, error } = await sb
+  const { data } = await sb
     .from('menu_items')
     .select('*')
     .eq('is_available', true)
     .order('category');
 
-  if (handleError(error, 'Unable to load menu items.')) {
-    renderMenu([]);
-    return;
-  }
-
   allMenuItems = data || [];
 
+  // Build category filter buttons
   const categories = [...new Set(allMenuItems.map(i => i.category))];
   const bar = document.getElementById('catBar');
   bar.innerHTML =
@@ -271,11 +260,7 @@ function filterMenu(cat, btn) {
 let allGallery = [];
 
 async function loadGallery() {
-  const { data, error } = await sb.from('gallery').select('*').order('created_at', { ascending: false });
-  if (handleError(error, 'Unable to load gallery images.')) {
-    renderGallery([]);
-    return;
-  }
+  const { data } = await sb.from('gallery').select('*').order('created_at', { ascending: false });
   allGallery = data || [];
   renderGallery(allGallery);
 }
@@ -371,7 +356,7 @@ function findBranch() {
    SIGNATURE DISHES — items with is_signature = true
 ══════════════════════════════════════════════════════════════ */
 async function loadSignature() {
-  const { data, error } = await sb
+  const { data } = await sb
     .from('menu_items')
     .select('*')
     .eq('is_signature', true)
@@ -379,10 +364,6 @@ async function loadSignature() {
     .limit(3);
 
   const grid = document.getElementById('sigGrid');
-  if (handleError(error, 'Unable to load signature dishes.')) {
-    grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Signature dishes coming soon.</p>`;
-    return;
-  }
   if (!data || !data.length) {
     grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Signature dishes coming soon.</p>`;
     return;
@@ -404,7 +385,7 @@ async function loadSignature() {
    BEST SELLERS — items with is_bestseller = true
 ══════════════════════════════════════════════════════════════ */
 async function loadBestSellers() {
-  const { data, error } = await sb
+  const { data } = await sb
     .from('menu_items')
     .select('*')
     .eq('is_bestseller', true)
@@ -412,10 +393,6 @@ async function loadBestSellers() {
     .limit(6);
 
   const grid = document.getElementById('bsGrid');
-  if (handleError(error, 'Unable to load best sellers.')) {
-    grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:40px 0">Best sellers coming soon.</p>`;
-    return;
-  }
   if (!data || !data.length) {
     grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:40px 0">Best sellers coming soon.</p>`;
     return;
@@ -442,12 +419,8 @@ async function loadBestSellers() {
 const PRESS_ICONS = ['fa-award','fa-newspaper','fa-trophy','fa-star','fa-medal','fa-crown'];
 
 async function loadPress() {
-  const { data, error } = await sb.from('press').select('*').order('date', { ascending: false }).limit(6);
+  const { data } = await sb.from('press').select('*').order('date', { ascending: false }).limit(6);
   const grid = document.getElementById('pressGrid');
-  if (handleError(error, 'Unable to load press entries.')) {
-    grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Coming soon.</p>`;
-    return;
-  }
   if (!data || !data.length) {
     grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Coming soon.</p>`;
     return;
@@ -477,12 +450,9 @@ async function loadTestimonials() {
 
   const track = document.getElementById('sliderTrack');
   if (!data || !data.length) {
-    sliderIndex = 0;
     track.innerHTML = `<p style="color:var(--muted); padding:40px 0">No reviews yet.</p>`;
     return;
   }
-
-  sliderIndex = 0;
   track.innerHTML = data.map(r => `
     <div class="t-card">
       <div class="t-quote">"</div>
@@ -497,41 +467,35 @@ async function loadTestimonials() {
       </div>
     </div>`).join('');
 
-  requestAnimationFrame(updateSlider);
-}
-
-function getSliderState() {
-  const track = document.getElementById('sliderTrack');
-  const cards = track ? track.querySelectorAll('.t-card') : [];
-  const visible = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
-  return { track, cards, visible };
-}
-
-function updateSlider() {
-  const { track, cards, visible } = getSliderState();
-  if (!track || !cards.length) return;
-
-  const gap = Number(getComputedStyle(track).gap.replace('px', '')) || 0;
-  const cardWidth = cards[0].getBoundingClientRect().width + gap;
-  const maxIndex = Math.max(0, cards.length - visible);
-  sliderIndex = Math.min(Math.max(0, sliderIndex), maxIndex);
-
-  track.style.willChange = 'transform';
-  track.style.transform = `translate3d(-${sliderIndex * cardWidth}px, 0, 0)`;
+  sliderIndex = 0;
+  const visible  = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
+  updateSliderArrows(Math.max(0, data.length - visible));
 }
 
 function slide(direction) {
-  const { cards, visible } = getSliderState();
+  const track = document.getElementById('sliderTrack');
+  const cards = track.querySelectorAll('.t-card');
   if (!cards.length) return;
 
+  const visible  = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
   const maxIndex = Math.max(0, cards.length - visible);
-  sliderIndex = Math.min(Math.max(0, sliderIndex + direction), maxIndex);
-  updateSlider();
+
+  if (maxIndex === 0) return; // not enough reviews to slide — add more in Admin Panel
+
+  sliderIndex = Math.max(0, Math.min(sliderIndex + direction, maxIndex));
+  const cardWidth = cards[0].offsetWidth + 22;
+  track.style.transform = `translateX(-${sliderIndex * cardWidth}px)`;
+  updateSliderArrows(maxIndex);
 }
 
-window.addEventListener('resize', () => {
-  updateSlider();
-});
+function updateSliderArrows(maxIndex) {
+  const btns = document.querySelectorAll('.slider-nav .sl-btn');
+  if (btns.length < 2) return;
+  btns[0].style.opacity = sliderIndex === 0 ? '.3' : '1';
+  btns[0].style.pointerEvents = sliderIndex === 0 ? 'none' : 'auto';
+  btns[1].style.opacity = sliderIndex >= maxIndex ? '.3' : '1';
+  btns[1].style.pointerEvents = sliderIndex >= maxIndex ? 'none' : 'auto';
+}
 
 /* ══════════════════════════════════════════════════════════════
    FOOD ARTICLES
