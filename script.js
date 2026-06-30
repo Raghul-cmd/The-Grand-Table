@@ -477,9 +477,11 @@ async function loadTestimonials() {
 
   const track = document.getElementById('sliderTrack');
   if (!data || !data.length) {
+    sliderIndex = 0;
     track.innerHTML = `<p style="color:var(--muted); padding:40px 0">No reviews yet.</p>`;
     return;
   }
+  sliderIndex = 0;
   track.innerHTML = data.map(r => `
     <div class="t-card">
       <div class="t-quote">"</div>
@@ -493,17 +495,31 @@ async function loadTestimonials() {
         </div>
       </div>
     </div>`).join('');
+  updateSlider();
+}
+
+function updateSlider() {
+  const track = document.getElementById('sliderTrack');
+  const cards  = track.querySelectorAll('.t-card');
+  if (!cards.length) return;
+  const visible = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
+  sliderIndex = Math.max(0, Math.min(sliderIndex, cards.length - visible));
+  const cardWidth = cards[0].offsetWidth + 22;
+  track.style.transform = `translate3d(-${sliderIndex * cardWidth}px, 0, 0)`;
 }
 
 function slide(direction) {
   const track = document.getElementById('sliderTrack');
   const cards  = track.querySelectorAll('.t-card');
   if (!cards.length) return;
-  const visible  = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
-  sliderIndex    = Math.max(0, Math.min(sliderIndex + direction, cards.length - visible));
-  const cardWidth = cards[0].offsetWidth + 22;
-  track.style.transform = `translateX(-${sliderIndex * cardWidth}px)`;
+  const visible = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
+  sliderIndex = Math.max(0, Math.min(sliderIndex + direction, cards.length - visible));
+  updateSlider();
 }
+
+window.addEventListener('resize', () => {
+  updateSlider();
+});
 
 /* ══════════════════════════════════════════════════════════════
    FOOD ARTICLES
