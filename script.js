@@ -86,6 +86,13 @@ function showToast(msg, ms = 3500) {
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
+function handleError(error, fallback = 'Something went wrong.') {
+  if (!error) return false;
+  console.error(error);
+  showToast(fallback);
+  return true;
+}
+
 // Close modal when clicking backdrop
 document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
@@ -208,15 +215,19 @@ function handleHeaderLogin() {
 let allMenuItems = [];
 
 async function loadMenu() {
-  const { data } = await sb
+  const { data, error } = await sb
     .from('menu_items')
     .select('*')
     .eq('is_available', true)
     .order('category');
 
+  if (handleError(error, 'Unable to load menu items.')) {
+    renderMenu([]);
+    return;
+  }
+
   allMenuItems = data || [];
 
-  // Build category filter buttons
   const categories = [...new Set(allMenuItems.map(i => i.category))];
   const bar = document.getElementById('catBar');
   bar.innerHTML =
@@ -260,7 +271,11 @@ function filterMenu(cat, btn) {
 let allGallery = [];
 
 async function loadGallery() {
-  const { data } = await sb.from('gallery').select('*').order('created_at', { ascending: false });
+  const { data, error } = await sb.from('gallery').select('*').order('created_at', { ascending: false });
+  if (handleError(error, 'Unable to load gallery images.')) {
+    renderGallery([]);
+    return;
+  }
   allGallery = data || [];
   renderGallery(allGallery);
 }
@@ -356,7 +371,7 @@ function findBranch() {
    SIGNATURE DISHES — items with is_signature = true
 ══════════════════════════════════════════════════════════════ */
 async function loadSignature() {
-  const { data } = await sb
+  const { data, error } = await sb
     .from('menu_items')
     .select('*')
     .eq('is_signature', true)
@@ -364,6 +379,10 @@ async function loadSignature() {
     .limit(3);
 
   const grid = document.getElementById('sigGrid');
+  if (handleError(error, 'Unable to load signature dishes.')) {
+    grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Signature dishes coming soon.</p>`;
+    return;
+  }
   if (!data || !data.length) {
     grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Signature dishes coming soon.</p>`;
     return;
@@ -385,7 +404,7 @@ async function loadSignature() {
    BEST SELLERS — items with is_bestseller = true
 ══════════════════════════════════════════════════════════════ */
 async function loadBestSellers() {
-  const { data } = await sb
+  const { data, error } = await sb
     .from('menu_items')
     .select('*')
     .eq('is_bestseller', true)
@@ -393,6 +412,10 @@ async function loadBestSellers() {
     .limit(6);
 
   const grid = document.getElementById('bsGrid');
+  if (handleError(error, 'Unable to load best sellers.')) {
+    grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:40px 0">Best sellers coming soon.</p>`;
+    return;
+  }
   if (!data || !data.length) {
     grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:40px 0">Best sellers coming soon.</p>`;
     return;
@@ -419,8 +442,12 @@ async function loadBestSellers() {
 const PRESS_ICONS = ['fa-award','fa-newspaper','fa-trophy','fa-star','fa-medal','fa-crown'];
 
 async function loadPress() {
-  const { data } = await sb.from('press').select('*').order('date', { ascending: false }).limit(6);
+  const { data, error } = await sb.from('press').select('*').order('date', { ascending: false }).limit(6);
   const grid = document.getElementById('pressGrid');
+  if (handleError(error, 'Unable to load press entries.')) {
+    grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Coming soon.</p>`;
+    return;
+  }
   if (!data || !data.length) {
     grid.innerHTML = `<p style="color:var(--muted); text-align:center; grid-column:span 3; padding:40px 0">Coming soon.</p>`;
     return;

@@ -29,7 +29,11 @@ document.querySelectorAll('.modal-backdrop').forEach(b => {
 function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString('en-IN', { year:'numeric', month:'short', day:'numeric' }) : '–';
 }
-
+function isValidUrl(value) {
+  if (!value) return false;
+  try { new URL(value); return true; }
+  catch { return false; }
+}
 /* ══════════════════════════════════════════════════════════════
    TAB SWITCHING
 ══════════════════════════════════════════════════════════════ */
@@ -51,6 +55,12 @@ function showTab(tabName) {
 
   if (tabName === 'home') loadStats();
   else if (TAB_LOADERS[tabName]) TAB_LOADERS[tabName]();
+}
+
+function quoteForOnclick(obj) {
+  return JSON.stringify(obj)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'");
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -114,7 +124,7 @@ async function loadMenu() {
   }
   body.innerHTML = data.map(i => `
     <tr>
-      <td><img class="tbl-img" src="${i.image_url || ''}" onerror="this.style.display='none'" alt=""></td>
+      <td><img class="tbl-img" src="${i.image_url || 'https://via.placeholder.com/80?text=No+Image'}" onerror="this.src='https://via.placeholder.com/80?text=Invalid+URL'; this.style.display='inline-block'" alt=""></td>
       <td>${i.name}</td>
       <td>${i.category}</td>
       <td>₹${Number(i.price).toFixed(0)}</td>
@@ -122,7 +132,7 @@ async function loadMenu() {
       <td><span class="badge ${i.is_signature  ? 'badge-yes' : 'badge-no'}">${i.is_signature  ? 'Yes' : 'No'}</span></td>
       <td><span class="badge ${i.is_bestseller ? 'badge-yes' : 'badge-no'}">${i.is_bestseller ? 'Yes' : 'No'}</span></td>
       <td><div class="row-actions">
-        <button class="action-btn edit"   onclick='editMenu(${JSON.stringify(i)})'><i class="fas fa-pen"></i></button>
+        <button class="action-btn edit"   onclick='editMenu(${quoteForOnclick(i)})'><i class="fas fa-pen"></i></button>
         <button class="action-btn delete" onclick="deleteMenu('${i.id}')"><i class="fas fa-trash"></i></button>
       </div></td>
     </tr>`).join('');
@@ -158,12 +168,17 @@ function editMenu(item) {
 
 async function saveMenu() {
   const id  = document.getElementById('m-id').value;
+  const imageValue = document.getElementById('m-img').value.trim();
+  if (imageValue && !isValidUrl(imageValue)) {
+    showToast('Please enter a valid image URL.');
+    return;
+  }
   const row = {
     name:          document.getElementById('m-name').value.trim(),
     category:      document.getElementById('m-cat').value.trim(),
     price:         parseFloat(document.getElementById('m-price').value),
     description:   document.getElementById('m-desc').value.trim(),
-    image_url:     document.getElementById('m-img').value.trim(),
+    image_url:     imageValue || null,
     is_available:  document.getElementById('m-avail').checked,
     is_signature:  document.getElementById('m-sig').checked,
     is_bestseller: document.getElementById('m-bs').checked,
@@ -253,7 +268,7 @@ async function loadReviews() {
       <td><span class="badge ${r.is_approved ? 'badge-yes' : 'badge-pend'}">${r.is_approved ? 'Approved' : 'Pending'}</span></td>
       <td><div class="row-actions">
         <button class="action-btn approve" onclick="toggleApprove('${r.id}', ${r.is_approved})">${r.is_approved ? 'Revoke' : 'Approve'}</button>
-        <button class="action-btn edit"    onclick='editReview(${JSON.stringify(r)})'><i class="fas fa-pen"></i></button>
+        <button class="action-btn edit"    onclick='editReview(${quoteForOnclick(r)})'><i class="fas fa-pen"></i></button>
         <button class="action-btn delete"  onclick="deleteReview('${r.id}')"><i class="fas fa-trash"></i></button>
       </div></td>
     </tr>`).join('');
@@ -335,7 +350,7 @@ async function loadArticles() {
       <td>${a.author || '–'}</td>
       <td>${fmtDate(a.published_at)}</td>
       <td><div class="row-actions">
-        <button class="action-btn edit"   onclick='editArticle(${JSON.stringify(a)})'><i class="fas fa-pen"></i></button>
+        <button class="action-btn edit"   onclick='editArticle(${quoteForOnclick(a)})'><i class="fas fa-pen"></i></button>
         <button class="action-btn delete" onclick="deleteArticle('${a.id}')"><i class="fas fa-trash"></i></button>
       </div></td>
     </tr>`).join('');
@@ -408,7 +423,7 @@ async function loadPress() {
       <td>${fmtDate(p.date)}</td>
       <td>${p.link ? `<a href="${p.link}" target="_blank" style="color:var(--gold); font-size:.76rem">View →</a>` : '–'}</td>
       <td><div class="row-actions">
-        <button class="action-btn edit"   onclick='editPress(${JSON.stringify(p)})'><i class="fas fa-pen"></i></button>
+        <button class="action-btn edit"   onclick='editPress(${quoteForOnclick(p)})'><i class="fas fa-pen"></i></button>
         <button class="action-btn delete" onclick="deletePress('${p.id}')"><i class="fas fa-trash"></i></button>
       </div></td>
     </tr>`).join('');
