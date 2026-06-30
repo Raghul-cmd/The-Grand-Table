@@ -217,28 +217,48 @@ async function loadGallery() {
   grid.innerHTML = data.map(i => `
     <div class="gal-adm-item">
       <img src="${i.image_url}" alt="" onerror="this.src='https://via.placeholder.com/150'">
+      <button class="gal-adm-edit" onclick='editGallery(${quoteForOnclick(i)})'><i class="fas fa-pen"></i></button>
       <button class="gal-adm-del" onclick="deleteGallery('${i.id}')"><i class="fas fa-trash"></i></button>
       <span class="gal-adm-cat">${i.category}</span>
     </div>`).join('');
 }
 
 function openGalModal() {
+  document.getElementById('g-id').value = '';
+  document.getElementById('gModalTitle').textContent = 'Add Gallery Image';
+  document.getElementById('gSaveBtn').textContent = 'Add Image';
   document.getElementById('g-url').value = '';
   document.getElementById('g-cap').value = '';
+  document.getElementById('g-cat').value = 'store';
+  openMod('galModal');
+}
+
+function editGallery(item) {
+  document.getElementById('g-id').value = item.id;
+  document.getElementById('gModalTitle').textContent = 'Edit Gallery Image';
+  document.getElementById('gSaveBtn').textContent = 'Save Changes';
+  document.getElementById('g-url').value = item.image_url || '';
+  document.getElementById('g-cap').value = item.caption || '';
+  document.getElementById('g-cat').value = item.category || 'store';
   openMod('galModal');
 }
 
 async function saveGallery() {
+  const id = document.getElementById('g-id').value;
   const url = document.getElementById('g-url').value.trim();
   if (!url) { showToast('Image URL is required.'); return; }
-  const { error } = await sb.from('gallery').insert({
+  if (!isValidUrl(url)) { showToast('Please enter a valid image URL.'); return; }
+  const row = {
     image_url: url,
-    caption:   document.getElementById('g-cap').value.trim(),
-    category:  document.getElementById('g-cat').value
-  });
+    caption:   document.getElementById('g-cap').value.trim() || null,
+    category:  document.getElementById('g-cat').value || 'store'
+  };
+  const { error } = id
+    ? await sb.from('gallery').update(row).eq('id', id)
+    : await sb.from('gallery').insert(row);
   if (error) { showToast('Error: ' + error.message); return; }
   closeMod('galModal');
-  showToast('Image added ✓');
+  showToast(id ? 'Image updated ✓' : 'Image added ✓');
   loadGallery();
 }
 

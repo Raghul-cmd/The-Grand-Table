@@ -230,7 +230,8 @@
 <div class="modal-backdrop" id="galModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeMod('galModal')"><i class="fas fa-times"></i></button>
-    <h2 class="modal-title">Add Gallery Image</h2>
+    <input type="hidden" id="g-id">
+    <h2 class="modal-title" id="gModalTitle">Add Gallery Image</h2>
     <div class="modal-field"><label>Image URL *</label><input type="url"  id="g-url" placeholder="https://your-image-url.com/photo.jpg"></div>
     <div class="modal-field"><label>Caption</label>    <input type="text" id="g-cap" placeholder="Short image caption"></div>
     <div class="modal-field">
@@ -240,7 +241,7 @@
         <option value="infrastructure">Infrastructure</option>
       </select>
     </div>
-    <button class="modal-save-btn" onclick="saveGallery()">Add Image</button>
+    <button class="modal-save-btn" id="gSaveBtn" onclick="saveGallery()">Add Image</button>
   </div>
 </div>
 
