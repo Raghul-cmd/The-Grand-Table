@@ -481,6 +481,7 @@ async function loadTestimonials() {
     track.innerHTML = `<p style="color:var(--muted); padding:40px 0">No reviews yet.</p>`;
     return;
   }
+
   sliderIndex = 0;
   track.innerHTML = data.map(r => `
     <div class="t-card">
@@ -495,25 +496,36 @@ async function loadTestimonials() {
         </div>
       </div>
     </div>`).join('');
-  updateSlider();
+
+  requestAnimationFrame(updateSlider);
+}
+
+function getSliderState() {
+  const track = document.getElementById('sliderTrack');
+  const cards = track ? track.querySelectorAll('.t-card') : [];
+  const visible = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
+  return { track, cards, visible };
 }
 
 function updateSlider() {
-  const track = document.getElementById('sliderTrack');
-  const cards  = track.querySelectorAll('.t-card');
-  if (!cards.length) return;
-  const visible = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
-  sliderIndex = Math.max(0, Math.min(sliderIndex, cards.length - visible));
-  const cardWidth = cards[0].offsetWidth + 22;
+  const { track, cards, visible } = getSliderState();
+  if (!track || !cards.length) return;
+
+  const gap = Number(getComputedStyle(track).gap.replace('px', '')) || 0;
+  const cardWidth = cards[0].getBoundingClientRect().width + gap;
+  const maxIndex = Math.max(0, cards.length - visible);
+  sliderIndex = Math.min(Math.max(0, sliderIndex), maxIndex);
+
+  track.style.willChange = 'transform';
   track.style.transform = `translate3d(-${sliderIndex * cardWidth}px, 0, 0)`;
 }
 
 function slide(direction) {
-  const track = document.getElementById('sliderTrack');
-  const cards  = track.querySelectorAll('.t-card');
+  const { cards, visible } = getSliderState();
   if (!cards.length) return;
-  const visible = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
-  sliderIndex = Math.max(0, Math.min(sliderIndex + direction, cards.length - visible));
+
+  const maxIndex = Math.max(0, cards.length - visible);
+  sliderIndex = Math.min(Math.max(0, sliderIndex + direction), maxIndex);
   updateSlider();
 }
 
