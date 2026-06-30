@@ -1,669 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel · The Grand Table</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-:root{
-  --bg:#0E0D0B;--sf:#161410;--pn:#1E1B17;--pn2:#252118;
-  --gold:#C9A96E;--gd:rgba(201,169,110,.12);
-  --tx:#F2F0EC;--mt:#6A6560;--dm:#2E2B27;
-  --red:#e05252;--grn:#6fcf97;
-  --ff:'Inter',sans-serif;--ffh:'Playfair Display',serif;
-  --ease:cubic-bezier(.25,.46,.45,.94);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--tx);font-family:var(--ff);min-height:100vh;}
-img{display:block;max-width:100%;}
-button{cursor:pointer;font-family:var(--ff);}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- EDIT: Admin page title -->
+  <title>Admin Panel · The Grand Table</title>
 
-/* ─── AUTH SCREEN ─────────────────────── */
-#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;}
-.abox{background:var(--pn);border:1px solid var(--dm);padding:50px 44px;width:380px;text-align:center;}
-.atitle{font-family:var(--ffh);font-size:1.6rem;color:var(--tx);margin-bottom:4px;}
-.asub{font-size:.82rem;color:var(--mt);margin-bottom:28px;}
-.af{margin-bottom:16px;text-align:left;}
-.af label{display:block;font-size:.66rem;letter-spacing:.25em;text-transform:uppercase;color:var(--mt);margin-bottom:6px;}
-.af input{width:100%;background:var(--sf);border:1px solid var(--dm);padding:11px 13px;color:var(--tx);font-family:var(--ff);font-size:.9rem;outline:none;transition:border-color .2s;}
-.af input:focus{border-color:var(--gold);}
-.aerr{color:var(--red);font-size:.78rem;margin-bottom:10px;min-height:18px;}
-.abtn{width:100%;padding:12px;background:var(--gold);border:none;color:var(--bg);font-family:var(--ff);font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;transition:background .2s;}
-.abtn:hover{background:#e2c48a;}
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Admin CSS -->
+  <link rel="stylesheet" href="admin.css">
 
-/* ─── DASHBOARD LAYOUT ────────────────── */
-#dash{display:none;min-height:100vh;}
-.sidebar{position:fixed;top:0;left:0;width:220px;height:100vh;background:var(--sf);border-right:1px solid var(--dm);display:flex;flex-direction:column;z-index:100;}
-.sbrand{padding:22px 20px;border-bottom:1px solid var(--dm);}
-.sbname{font-family:var(--ffh);font-size:1rem;color:var(--gold);display:block;}
-.sbsub{font-size:.6rem;color:var(--mt);letter-spacing:.2em;text-transform:uppercase;}
-.snav{flex:1;padding:18px 0;overflow-y:auto;}
-.slab{font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:var(--mt);padding:12px 20px 5px;}
-.slink{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:.8rem;color:var(--mt);transition:all .2s;cursor:pointer;border:none;background:none;width:100%;text-align:left;}
-.slink i{width:15px;font-size:.82rem;}
-.slink:hover{color:var(--gold);background:var(--gd);}
-.slink.on{color:var(--gold);background:var(--gd);border-right:2px solid var(--gold);}
-.sfooter{padding:15px 20px;border-top:1px solid var(--dm);}
-.sout{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--mt);cursor:pointer;background:none;border:none;transition:color .2s;}
-.sout:hover{color:var(--red);}
-.main{margin-left:220px;padding:30px 34px;min-height:100vh;}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
-.ptitle{font-family:var(--ffh);font-size:1.8rem;color:var(--tx);font-weight:400;}
-.psub{font-size:.78rem;color:var(--mt);margin-top:2px;}
-
-/* ─── STATS ───────────────────────────── */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
-.sc{background:var(--pn);border:1px solid var(--dm);padding:20px;}
-.scl{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mt);margin-bottom:7px;}
-.scn{font-family:var(--ffh);font-size:2rem;color:var(--gold);}
-.sci{float:right;font-size:1.4rem;color:var(--dm);}
-
-/* ─── TABLE ───────────────────────────── */
-.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.sec-hdr h2{font-family:var(--ffh);font-size:1.3rem;color:var(--tx);font-weight:400;}
-.addbtn{display:flex;align-items:center;gap:7px;background:var(--gold);border:none;color:var(--bg);padding:9px 16px;font-family:var(--ff);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;transition:background .2s;}
-.addbtn:hover{background:#e2c48a;}
-.tbl{width:100%;border-collapse:collapse;background:var(--pn);border:1px solid var(--dm);}
-.tbl th{padding:11px 13px;text-align:left;font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mt);border-bottom:1px solid var(--dm);background:var(--sf);}
-.tbl td{padding:11px 13px;font-size:.83rem;color:var(--tx);border-bottom:1px solid var(--dm);}
-.tbl tr:last-child td{border-bottom:none;}
-.tbl tr:hover td{background:var(--gd);}
-.ti{width:46px;height:46px;object-fit:cover;}
-.badge{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;padding:3px 9px;}
-.badge.y{background:rgba(111,207,151,.15);color:var(--grn);}
-.badge.n{background:rgba(224,82,82,.1);color:var(--red);}
-.badge.pend{background:rgba(201,169,110,.1);color:var(--gold);}
-.badge.conf{background:rgba(111,207,151,.15);color:var(--grn);}
-.badge.canc{background:rgba(224,82,82,.1);color:var(--red);}
-.ra{display:flex;gap:5px;}
-.iab{padding:5px 10px;font-size:.7rem;border:1px solid var(--dm);background:none;color:var(--mt);transition:all .2s;}
-.iab.ed:hover{border-color:var(--gold);color:var(--gold);}
-.iab.dl:hover{border-color:var(--red);color:var(--red);}
-.iab.ap:hover{border-color:var(--grn);color:var(--grn);}
-.iab.st:hover{border-color:var(--gold);color:var(--gold);}
-
-/* ─── MODAL ───────────────────────────── */
-.mbk{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9000;display:none;align-items:center;justify-content:center;}
-.mbk.open{display:flex;}
-.mbox{background:var(--pn);border:1px solid var(--dm);padding:34px 32px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;}
-.mtit{font-family:var(--ffh);font-size:1.25rem;color:var(--tx);margin-bottom:20px;font-weight:400;}
-.mx{position:absolute;top:13px;right:17px;background:none;border:none;color:var(--mt);font-size:1.05rem;}
-.mx:hover{color:var(--gold);}
-.mf{margin-bottom:14px;}
-.mf label{display:block;font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;color:var(--mt);margin-bottom:5px;}
-.mf input,.mf select,.mf textarea{width:100%;background:var(--sf);border:1px solid var(--dm);padding:10px 12px;color:var(--tx);font-family:var(--ff);font-size:.86rem;outline:none;transition:border-color .2s;color-scheme:dark;}
-.mf textarea{min-height:86px;resize:vertical;}
-.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--gold);}
-.mf select{appearance:none;cursor:pointer;}
-.crow{display:flex;gap:18px;}
-.ci{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--mt);cursor:pointer;}
-.ci input[type=checkbox]{accent-color:var(--gold);width:14px;height:14px;}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
-.savebtn{width:100%;padding:12px;background:var(--gold);border:none;color:var(--bg);font-family:var(--ff);font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;margin-top:10px;transition:background .2s;}
-.savebtn:hover{background:#e2c48a;}
-
-/* ─── GALLERY ADMIN ───────────────────── */
-.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;}
-.gi{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--dm);}
-.gi img{width:100%;height:100%;object-fit:cover;}
-.gdel{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.75);border:none;color:var(--red);width:26px;height:26px;display:flex;align-items:center;justify-content:center;transition:background .2s;}
-.gdel:hover{background:var(--red);color:#fff;}
-.gcat{position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,.7);color:var(--gold);font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;padding:2px 6px;}
-
-/* ─── MISC ────────────────────────────── */
-.empty{padding:50px;text-align:center;color:var(--mt);font-size:.84rem;}
-.tab{display:none;}.tab.on{display:block;}
-#toast2{position:fixed;bottom:22px;right:22px;background:var(--pn);border:1px solid var(--gold);color:var(--tx);padding:12px 18px;font-size:.8rem;z-index:99999;opacity:0;transform:translateY(12px);transition:all .3s;pointer-events:none;}
-#toast2.on{opacity:1;transform:none;}
-.sp{width:30px;height:30px;border:1.5px solid var(--dm);border-top-color:var(--gold);border-radius:50%;animation:rot .8s linear infinite;margin:40px auto;}
-@keyframes rot{to{transform:rotate(360deg);}}
-.live-link{color:var(--gold);font-size:.76rem;display:flex;align-items:center;gap:6px;border:1px solid var(--dm);padding:7px 13px;transition:border-color .2s;}
-.live-link:hover{border-color:var(--gold);}
-</style>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div id="toast2"></div>
 
-<!-- ════════════ AUTH SCREEN ════════════ -->
-<div id="auth">
-  <div class="abox">
-    <p style="font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Admin Panel</p>
-    <h2 class="atitle">The Grand Table</h2>
-    <p class="asub">Sign in with your admin credentials</p>
-    <!-- EDIT: Add admin emails in Supabase → Authentication → Users -->
-    <div class="af"><label>Email</label><input type="email" id="ae" placeholder="admin@email.com" onkeydown="if(event.key==='Enter')login()"></div>
-    <div class="af"><label>Password</label><input type="password" id="ap" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
-    <p class="aerr" id="aerr"></p>
-    <button class="abtn" onclick="login()">Sign In</button>
+<div id="adminToast"></div>
+
+<!-- ════════════════════════════════════════════════
+     AUTH / LOGIN SCREEN
+════════════════════════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-box">
+    <p class="auth-eyebrow">Admin Panel</p>
+    <h2 class="auth-title">The Grand Table</h2>
+    <!-- EDIT: Subtitle -->
+    <p class="auth-sub">Sign in with your admin credentials</p>
+    <!-- Add admin users in: Supabase → Authentication → Users -->
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="adminEmail" placeholder="admin@email.com" onkeydown="if(event.key==='Enter') adminLogin()">
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="adminPwd" placeholder="••••••••" onkeydown="if(event.key==='Enter') adminLogin()">
+    </div>
+    <p class="auth-err" id="authErr"></p>
+    <button class="auth-btn" onclick="adminLogin()">Sign In</button>
   </div>
 </div>
 
-<!-- ════════════ DASHBOARD ════════════ -->
-<div id="dash">
-  <!-- SIDEBAR -->
+<!-- ════════════════════════════════════════════════
+     DASHBOARD (shown after login)
+════════════════════════════════════════════════ -->
+<div id="dashboard">
+
+  <!-- ─── SIDEBAR ─── -->
   <aside class="sidebar">
-    <div class="sbrand">
-      <!-- EDIT: Restaurant name in admin sidebar -->
-      <span class="sbname">The Grand Table</span>
-      <span class="sbsub">Admin Panel</span>
+    <div class="sidebar-brand">
+      <!-- EDIT: Sidebar restaurant name -->
+      <span class="sb-name">The Grand Table</span>
+      <span class="sb-sub">Admin Panel</span>
     </div>
-    <nav class="snav">
-      <div class="slab">Overview</div>
-      <button class="slink on" onclick="show('home')"><i class="fas fa-home"></i>Dashboard</button>
-      <div class="slab">Content</div>
-      <button class="slink" onclick="show('menu')"><i class="fas fa-utensils"></i>Menu Items</button>
-      <button class="slink" onclick="show('gallery')"><i class="fas fa-images"></i>Gallery</button>
-      <button class="slink" onclick="show('reviews')"><i class="fas fa-star"></i>Reviews</button>
-      <button class="slink" onclick="show('articles')"><i class="fas fa-newspaper"></i>Articles</button>
-      <button class="slink" onclick="show('press')"><i class="fas fa-award"></i>Press</button>
-      <div class="slab">Operations</div>
-      <button class="slink" onclick="show('reservations')"><i class="fas fa-calendar"></i>Reservations</button>
-      <button class="slink" onclick="show('newsletter')"><i class="fas fa-envelope"></i>Newsletter</button>
-      <button class="slink" onclick="show('customers')"><i class="fas fa-users"></i>Customers</button>
+    <nav class="sidebar-nav">
+      <p class="nav-label">Overview</p>
+      <button class="nav-link active" onclick="showTab('home')">        <i class="fas fa-home"></i>      Dashboard</button>
+      <p class="nav-label">Content</p>
+      <button class="nav-link" onclick="showTab('menu')">         <i class="fas fa-utensils"></i>  Menu Items</button>
+      <button class="nav-link" onclick="showTab('gallery')">      <i class="fas fa-images"></i>    Gallery</button>
+      <button class="nav-link" onclick="showTab('reviews')">      <i class="fas fa-star"></i>      Reviews</button>
+      <button class="nav-link" onclick="showTab('articles')">     <i class="fas fa-newspaper"></i> Articles</button>
+      <button class="nav-link" onclick="showTab('press')">        <i class="fas fa-award"></i>     Press</button>
+      <p class="nav-label">Operations</p>
+      <button class="nav-link" onclick="showTab('reservations')"> <i class="fas fa-calendar"></i>  Reservations</button>
+      <button class="nav-link" onclick="showTab('newsletter')">   <i class="fas fa-envelope"></i>  Newsletter</button>
+      <button class="nav-link" onclick="showTab('customers')">    <i class="fas fa-users"></i>     Customers</button>
     </nav>
-    <div class="sfooter">
-      <button class="sout" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Sign Out</button>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
     </div>
   </aside>
 
-  <div class="main">
+  <!-- ─── MAIN AREA ─── -->
+  <main class="main-area">
 
-    <!-- ── DASHBOARD HOME ── -->
-    <div class="tab on" id="tab-home">
+    <!-- ── TAB: DASHBOARD HOME ── -->
+    <div class="tab active" id="tab-home">
       <div class="topbar">
-        <div><h1 class="ptitle">Dashboard</h1><p class="psub">Welcome back, Admin</p></div>
-        <a href="index.html" target="_blank" class="live-link"><i class="fas fa-external-link-alt"></i>View Live Site</a>
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-sub">Welcome back, Admin</p>
+        </div>
+        <a href="index.html" target="_blank" class="live-site-btn">
+          <i class="fas fa-external-link-alt"></i> View Live Site
+        </a>
       </div>
-      <div class="stats">
-        <div class="sc"><i class="fas fa-utensils sci"></i><p class="scl">Menu Items</p><span class="scn" id="st1">–</span></div>
-        <div class="sc"><i class="fas fa-calendar sci"></i><p class="scl">Reservations</p><span class="scn" id="st2">–</span></div>
-        <div class="sc"><i class="fas fa-star sci"></i><p class="scl">Reviews</p><span class="scn" id="st3">–</span></div>
-        <div class="sc"><i class="fas fa-users sci"></i><p class="scl">Customers</p><span class="scn" id="st4">–</span></div>
+      <div class="stats-row">
+        <div class="stat-card"><i class="fas fa-utensils stat-icon"></i><p class="stat-label">Menu Items</p>  <span class="stat-num" id="s-menu">–</span></div>
+        <div class="stat-card"><i class="fas fa-calendar  stat-icon"></i><p class="stat-label">Reservations</p><span class="stat-num" id="s-res">–</span></div>
+        <div class="stat-card"><i class="fas fa-star      stat-icon"></i><p class="stat-label">Reviews</p>      <span class="stat-num" id="s-rev">–</span></div>
+        <div class="stat-card"><i class="fas fa-users     stat-icon"></i><p class="stat-label">Customers</p>    <span class="stat-num" id="s-cus">–</span></div>
       </div>
-      <div style="background:var(--pn);border:1px solid var(--dm);padding:26px;font-size:.84rem;color:var(--mt);line-height:1.85">
-        <p style="color:var(--gold);font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:10px">Quick Guide</p>
-        <p>All changes made here reflect <b style="color:var(--tx)">instantly</b> on the live customer website.</p>
-        <p style="margin-top:8px">• <b style="color:var(--tx)">Menu Items</b> — Add, edit, delete dishes. Mark as <i>Signature</i> or <i>Best Seller</i> to feature them in those sections.</p>
-        <p>• <b style="color:var(--tx)">Gallery</b> — Upload store or infrastructure images.</p>
-        <p>• <b style="color:var(--tx)">Reviews</b> — Approve customer reviews before they go public.</p>
-        <p>• <b style="color:var(--tx)">Reservations</b> — View all bookings and update their status.</p>
+      <div class="info-box">
+        <p class="info-title">Quick Guide</p>
+        <p>All changes here reflect <strong>instantly</strong> on the live customer website.</p>
+        <p>• <strong>Menu Items</strong> — Add, edit, delete dishes. Tick <em>Signature</em> or <em>Best Seller</em> to feature them in those sections.</p>
+        <p>• <strong>Gallery</strong> — Upload store or infrastructure images.</p>
+        <p>• <strong>Reviews</strong> — Approve customer reviews before they go public.</p>
+        <p>• <strong>Reservations</strong> — View bookings and update their status to Confirmed / Cancelled.</p>
       </div>
     </div>
 
-    <!-- ── MENU ITEMS ── -->
+    <!-- ── TAB: MENU ITEMS ── -->
     <div class="tab" id="tab-menu">
       <div class="topbar">
-        <div><h1 class="ptitle">Menu Items</h1><p class="psub">All dishes on the customer menu</p></div>
-        <button class="addbtn" onclick="openMenuModal()"><i class="fas fa-plus"></i>Add Item</button>
+        <div><h1 class="page-title">Menu Items</h1><p class="page-sub">All dishes on the customer menu</p></div>
+        <button class="add-btn" onclick="openMenuModal()"><i class="fas fa-plus"></i> Add Item</button>
       </div>
-      <table class="tbl">
-        <thead><tr><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Available</th><th>Signature</th><th>Best Seller</th><th>Actions</th></tr></thead>
-        <tbody id="menuBody"><tr><td colspan="8" class="empty"><div class="sp"></div></td></tr></tbody>
+      <table class="data-table">
+        <thead><tr>
+          <th>Image</th><th>Name</th><th>Category</th><th>Price</th>
+          <th>Available</th><th>Signature</th><th>Best Seller</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="menuBody"><tr><td colspan="8" class="empty"><div class="mini-spin"></div></td></tr></tbody>
       </table>
     </div>
 
-    <!-- ── GALLERY ── -->
+    <!-- ── TAB: GALLERY ── -->
     <div class="tab" id="tab-gallery">
       <div class="topbar">
-        <div><h1 class="ptitle">Gallery</h1><p class="psub">Store &amp; infrastructure images</p></div>
-        <button class="addbtn" onclick="openGalModal()"><i class="fas fa-plus"></i>Add Image</button>
+        <div><h1 class="page-title">Gallery</h1><p class="page-sub">Store &amp; infrastructure images</p></div>
+        <button class="add-btn" onclick="openGalModal()"><i class="fas fa-plus"></i> Add Image</button>
       </div>
-      <div class="ggrid" id="galAdm"><div class="sp"></div></div>
+      <div class="gallery-admin-grid" id="galAdmGrid">
+        <div class="mini-spin"></div>
+      </div>
     </div>
 
-    <!-- ── REVIEWS ── -->
+    <!-- ── TAB: REVIEWS ── -->
     <div class="tab" id="tab-reviews">
       <div class="topbar">
-        <div><h1 class="ptitle">Customer Reviews</h1><p class="psub">Approve or manage reviews</p></div>
-        <button class="addbtn" onclick="openRevModal()"><i class="fas fa-plus"></i>Add Review</button>
+        <div><h1 class="page-title">Customer Reviews</h1><p class="page-sub">Approve or manage reviews</p></div>
+        <button class="add-btn" onclick="openRevModal()"><i class="fas fa-plus"></i> Add Review</button>
       </div>
-      <table class="tbl">
-        <thead><tr><th>Customer</th><th>Review</th><th>Rating</th><th>Date</th><th>Approved</th><th>Actions</th></tr></thead>
-        <tbody id="revBody"><tr><td colspan="6" class="empty"><div class="sp"></div></td></tr></tbody>
+      <table class="data-table">
+        <thead><tr><th>Customer</th><th>Review</th><th>Rating</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="revBody"><tr><td colspan="6" class="empty"><div class="mini-spin"></div></td></tr></tbody>
       </table>
     </div>
 
-    <!-- ── ARTICLES ── -->
+    <!-- ── TAB: ARTICLES ── -->
     <div class="tab" id="tab-articles">
       <div class="topbar">
-        <div><h1 class="ptitle">Food Articles</h1><p class="psub">Blog &amp; food stories</p></div>
-        <button class="addbtn" onclick="openArtModal()"><i class="fas fa-plus"></i>Add Article</button>
+        <div><h1 class="page-title">Food Articles</h1><p class="page-sub">Blog &amp; food stories</p></div>
+        <button class="add-btn" onclick="openArtModal()"><i class="fas fa-plus"></i> Add Article</button>
       </div>
-      <table class="tbl">
+      <table class="data-table">
         <thead><tr><th>Image</th><th>Title</th><th>Category</th><th>Author</th><th>Published</th><th>Actions</th></tr></thead>
-        <tbody id="artBody"><tr><td colspan="6" class="empty"><div class="sp"></div></td></tr></tbody>
+        <tbody id="artBody"><tr><td colspan="6" class="empty"><div class="mini-spin"></div></td></tr></tbody>
       </table>
     </div>
 
-    <!-- ── PRESS ── -->
+    <!-- ── TAB: PRESS ── -->
     <div class="tab" id="tab-press">
       <div class="topbar">
-        <div><h1 class="ptitle">Press &amp; Recognition</h1><p class="psub">Awards and media mentions</p></div>
-        <button class="addbtn" onclick="openPresModal()"><i class="fas fa-plus"></i>Add Entry</button>
+        <div><h1 class="page-title">Press &amp; Recognition</h1><p class="page-sub">Awards and media mentions</p></div>
+        <button class="add-btn" onclick="openPresModal()"><i class="fas fa-plus"></i> Add Entry</button>
       </div>
-      <table class="tbl">
+      <table class="data-table">
         <thead><tr><th>Title</th><th>Publication</th><th>Date</th><th>Link</th><th>Actions</th></tr></thead>
-        <tbody id="presBody"><tr><td colspan="5" class="empty"><div class="sp"></div></td></tr></tbody>
+        <tbody id="presBody"><tr><td colspan="5" class="empty"><div class="mini-spin"></div></td></tr></tbody>
       </table>
     </div>
 
-    <!-- ── RESERVATIONS ── -->
+    <!-- ── TAB: RESERVATIONS ── -->
     <div class="tab" id="tab-reservations">
       <div class="topbar">
-        <div><h1 class="ptitle">Reservations</h1><p class="psub">All table bookings</p></div>
+        <div><h1 class="page-title">Reservations</h1><p class="page-sub">All table bookings</p></div>
       </div>
-      <table class="tbl">
+      <table class="data-table">
         <thead><tr><th>Name</th><th>Email</th><th>Date</th><th>Time</th><th>Guests</th><th>Notes</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="resBody"><tr><td colspan="8" class="empty"><div class="sp"></div></td></tr></tbody>
+        <tbody id="resBody"><tr><td colspan="8" class="empty"><div class="mini-spin"></div></td></tr></tbody>
       </table>
     </div>
 
-    <!-- ── NEWSLETTER ── -->
+    <!-- ── TAB: NEWSLETTER ── -->
     <div class="tab" id="tab-newsletter">
       <div class="topbar">
-        <div><h1 class="ptitle">Newsletter</h1><p class="psub">All subscribers</p></div>
+        <div><h1 class="page-title">Newsletter</h1><p class="page-sub">All subscribers</p></div>
       </div>
-      <table class="tbl">
+      <table class="data-table">
         <thead><tr><th>Email</th><th>Subscribed</th><th>Actions</th></tr></thead>
-        <tbody id="nlBody"><tr><td colspan="3" class="empty"><div class="sp"></div></td></tr></tbody>
+        <tbody id="nlBody"><tr><td colspan="3" class="empty"><div class="mini-spin"></div></td></tr></tbody>
       </table>
     </div>
 
-    <!-- ── CUSTOMERS ── -->
+    <!-- ── TAB: CUSTOMERS ── -->
     <div class="tab" id="tab-customers">
       <div class="topbar">
-        <div><h1 class="ptitle">Customers</h1><p class="psub">Registered via login popup</p></div>
+        <div><h1 class="page-title">Customers</h1><p class="page-sub">Registered via login popup</p></div>
       </div>
-      <table class="tbl">
+      <table class="data-table">
         <thead><tr><th>Email</th><th>Name</th><th>Joined</th><th>Actions</th></tr></thead>
-        <tbody id="cusBody"><tr><td colspan="4" class="empty"><div class="sp"></div></td></tr></tbody>
+        <tbody id="cusBody"><tr><td colspan="4" class="empty"><div class="mini-spin"></div></td></tr></tbody>
       </table>
     </div>
 
-  </div><!-- .main -->
-</div><!-- #dash -->
+  </main>
+</div>
 
-<!-- ════════════ MENU MODAL ════════════ -->
-<div class="mbk" id="menuModal">
-  <div class="mbox">
-    <button class="mx" onclick="closeMod('menuModal')"><i class="fas fa-times"></i></button>
-    <h2 class="mtit" id="menuModalTitle">Add Menu Item</h2>
-    <input type="hidden" id="mId">
-    <div class="mf"><label>Item Name *</label><input type="text" id="mName" placeholder="e.g. Butter Chicken"></div>
-    <div class="two">
-      <div class="mf"><label>Category *</label><input type="text" id="mCat" placeholder="e.g. Main Course"></div>
-      <div class="mf"><label>Price (₹) *</label><input type="number" id="mPrice" placeholder="450"></div>
+<!-- ════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════ -->
+
+<!-- Menu Item Modal -->
+<div class="modal-backdrop" id="menuModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMod('menuModal')"><i class="fas fa-times"></i></button>
+    <h2 class="modal-title" id="menuModalTitle">Add Menu Item</h2>
+    <input type="hidden" id="m-id">
+    <div class="modal-field"><label>Item Name *</label><input type="text"   id="m-name"  placeholder="e.g. Butter Chicken"></div>
+    <div class="two-col">
+      <div class="modal-field"><label>Category *</label><input type="text"   id="m-cat"   placeholder="e.g. Main Course"></div>
+      <div class="modal-field"><label>Price (₹) *</label><input type="number" id="m-price" placeholder="450"></div>
     </div>
-    <div class="mf"><label>Description</label><textarea id="mDesc" placeholder="Short description of the dish…"></textarea></div>
-    <div class="mf"><label>Image URL</label><input type="url" id="mImg" placeholder="https://your-image-url.com/dish.jpg"></div>
-    <div class="crow" style="margin-bottom:14px">
-      <label class="ci"><input type="checkbox" id="mAvail" checked>Available</label>
-      <label class="ci"><input type="checkbox" id="mSig">Signature Dish</label>
-      <label class="ci"><input type="checkbox" id="mBS">Best Seller</label>
+    <div class="modal-field"><label>Description</label><textarea id="m-desc" placeholder="Short dish description…"></textarea></div>
+    <div class="modal-field"><label>Image URL</label><input type="url" id="m-img" placeholder="https://your-image-url.com/dish.jpg"></div>
+    <div class="check-row">
+      <label class="check-item"><input type="checkbox" id="m-avail" checked> Available</label>
+      <label class="check-item"><input type="checkbox" id="m-sig">            Signature Dish</label>
+      <label class="check-item"><input type="checkbox" id="m-bs">             Best Seller</label>
     </div>
-    <button class="savebtn" onclick="saveMenu()">Save Item</button>
+    <button class="modal-save-btn" onclick="saveMenu()">Save Item</button>
   </div>
 </div>
 
-<!-- ════════════ GALLERY MODAL ════════════ -->
-<div class="mbk" id="galModal">
-  <div class="mbox">
-    <button class="mx" onclick="closeMod('galModal')"><i class="fas fa-times"></i></button>
-    <h2 class="mtit">Add Gallery Image</h2>
-    <div class="mf"><label>Image URL *</label><input type="url" id="gUrl" placeholder="https://your-image-url.com/photo.jpg"></div>
-    <div class="mf"><label>Caption</label><input type="text" id="gCap" placeholder="Short image caption"></div>
-    <div class="mf">
+<!-- Gallery Modal -->
+<div class="modal-backdrop" id="galModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMod('galModal')"><i class="fas fa-times"></i></button>
+    <h2 class="modal-title">Add Gallery Image</h2>
+    <div class="modal-field"><label>Image URL *</label><input type="url"  id="g-url" placeholder="https://your-image-url.com/photo.jpg"></div>
+    <div class="modal-field"><label>Caption</label>    <input type="text" id="g-cap" placeholder="Short image caption"></div>
+    <div class="modal-field">
       <label>Category *</label>
-      <select id="gCat">
+      <select id="g-cat">
         <option value="store">Our Stores</option>
         <option value="infrastructure">Infrastructure</option>
       </select>
     </div>
-    <button class="savebtn" onclick="saveGal()">Add Image</button>
+    <button class="modal-save-btn" onclick="saveGallery()">Add Image</button>
   </div>
 </div>
 
-<!-- ════════════ REVIEW MODAL ════════════ -->
-<div class="mbk" id="revModal">
-  <div class="mbox">
-    <button class="mx" onclick="closeMod('revModal')"><i class="fas fa-times"></i></button>
-    <h2 class="mtit" id="revModalTitle">Add Review</h2>
-    <input type="hidden" id="rvId">
-    <div class="mf"><label>Customer Name *</label><input type="text" id="rvName" placeholder="e.g. Priya Sharma"></div>
-    <div class="mf"><label>Review *</label><textarea id="rvText" placeholder="Customer review text…"></textarea></div>
-    <div class="two">
-      <div class="mf"><label>Rating (1-5) *</label><input type="number" id="rvRating" min="1" max="5" placeholder="5"></div>
-      <div class="mf"><label>Date</label><input type="date" id="rvDate"></div>
+<!-- Review Modal -->
+<div class="modal-backdrop" id="revModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMod('revModal')"><i class="fas fa-times"></i></button>
+    <h2 class="modal-title" id="revModalTitle">Add Review</h2>
+    <input type="hidden" id="rv-id">
+    <div class="modal-field"><label>Customer Name *</label><input type="text" id="rv-name" placeholder="e.g. Priya Sharma"></div>
+    <div class="modal-field"><label>Review *</label><textarea id="rv-text" placeholder="Customer review text…"></textarea></div>
+    <div class="two-col">
+      <div class="modal-field"><label>Rating (1-5) *</label><input type="number" id="rv-rating" min="1" max="5" placeholder="5"></div>
+      <div class="modal-field"><label>Date</label><input type="date" id="rv-date"></div>
     </div>
-    <div style="margin-bottom:14px"><label class="ci"><input type="checkbox" id="rvApproved">Approved (visible on site)</label></div>
-    <button class="savebtn" onclick="saveRev()">Save Review</button>
-  </div>
-</div>
-
-<!-- ════════════ ARTICLE MODAL ════════════ -->
-<div class="mbk" id="artModal">
-  <div class="mbox">
-    <button class="mx" onclick="closeMod('artModal')"><i class="fas fa-times"></i></button>
-    <h2 class="mtit" id="artModalTitle">Add Article</h2>
-    <input type="hidden" id="atId">
-    <div class="mf"><label>Title *</label><input type="text" id="atTitle" placeholder="Article title"></div>
-    <div class="two">
-      <div class="mf"><label>Category</label><input type="text" id="atCat" placeholder="Food Culture"></div>
-      <div class="mf"><label>Author</label><input type="text" id="atAuthor" placeholder="Chef Name"></div>
+    <div class="check-row" style="margin-bottom:14px">
+      <label class="check-item"><input type="checkbox" id="rv-approved"> Approved (visible on site)</label>
     </div>
-    <div class="mf"><label>Content *</label><textarea id="atContent" style="min-height:120px" placeholder="Full article content…"></textarea></div>
-    <div class="mf"><label>Image URL</label><input type="url" id="atImg" placeholder="https://your-image-url.com/article.jpg"></div>
-    <div class="mf"><label>Published Date</label><input type="datetime-local" id="atDate"></div>
-    <button class="savebtn" onclick="saveArt()">Save Article</button>
+    <button class="modal-save-btn" onclick="saveReview()">Save Review</button>
   </div>
 </div>
 
-<!-- ════════════ PRESS MODAL ════════════ -->
-<div class="mbk" id="presModal">
-  <div class="mbox">
-    <button class="mx" onclick="closeMod('presModal')"><i class="fas fa-times"></i></button>
-    <h2 class="mtit" id="presModalTitle">Add Press Entry</h2>
-    <input type="hidden" id="prId">
-    <div class="mf"><label>Title *</label><input type="text" id="prTitle" placeholder="e.g. Best Fine Dining 2024"></div>
-    <div class="two">
-      <div class="mf"><label>Publication *</label><input type="text" id="prPub" placeholder="e.g. Times Food Awards"></div>
-      <div class="mf"><label>Date *</label><input type="date" id="prDate"></div>
+<!-- Article Modal -->
+<div class="modal-backdrop" id="artModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMod('artModal')"><i class="fas fa-times"></i></button>
+    <h2 class="modal-title" id="artModalTitle">Add Article</h2>
+    <input type="hidden" id="at-id">
+    <div class="modal-field"><label>Title *</label><input type="text" id="at-title" placeholder="Article title"></div>
+    <div class="two-col">
+      <div class="modal-field"><label>Category</label><input type="text" id="at-cat"    placeholder="Food Culture"></div>
+      <div class="modal-field"><label>Author</label>  <input type="text" id="at-author" placeholder="Chef Name"></div>
     </div>
-    <div class="mf"><label>Link (optional)</label><input type="url" id="prLink" placeholder="https://article-link.com"></div>
-    <button class="savebtn" onclick="savePres()">Save Entry</button>
+    <div class="modal-field"><label>Content *</label><textarea id="at-content" style="min-height:120px" placeholder="Full article content…"></textarea></div>
+    <div class="modal-field"><label>Image URL</label>       <input type="url"            id="at-img"  placeholder="https://your-image-url.com/article.jpg"></div>
+    <div class="modal-field"><label>Published Date</label>  <input type="datetime-local" id="at-date"></div>
+    <button class="modal-save-btn" onclick="saveArticle()">Save Article</button>
   </div>
 </div>
 
-<script>
-/* ═══════════════════════════════════════════════════
-   SUPABASE — EDIT THESE VALUES
-   Same as index.html (copy from there)
-═══════════════════════════════════════════════════ */
-const SUPABASE_URL  = 'https://afyxyowonhvwbwtdcrkt.supabase.co';
-const SUPABASE_ANON = 'YOUR_SUPABASE_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmeXh5b3dvbmh2d2J3dGRjcmt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTQxNTgsImV4cCI6MjA5ODI5MDE1OH0.A5_hda9PAbATb0J_gD9bTl9O6VXatHcKV25hE4nXupYANON_KEY_HERE';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+<!-- Press Modal -->
+<div class="modal-backdrop" id="presModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeMod('presModal')"><i class="fas fa-times"></i></button>
+    <h2 class="modal-title" id="presModalTitle">Add Press Entry</h2>
+    <input type="hidden" id="pr-id">
+    <div class="modal-field"><label>Title *</label><input type="text" id="pr-title" placeholder="e.g. Best Fine Dining 2024"></div>
+    <div class="two-col">
+      <div class="modal-field"><label>Publication *</label><input type="text" id="pr-pub"  placeholder="e.g. Times Food Awards"></div>
+      <div class="modal-field"><label>Date *</label>       <input type="date" id="pr-date"></div>
+    </div>
+    <div class="modal-field"><label>Link (optional)</label><input type="url" id="pr-link" placeholder="https://article-link.com"></div>
+    <button class="modal-save-btn" onclick="savePress()">Save Entry</button>
+  </div>
+</div>
 
-/* ═══════════════════════════════════════════════════
-   UTILITIES
-═══════════════════════════════════════════════════ */
-function toast(msg,ms=3000){
-  const t=document.getElementById('toast2');
-  t.textContent=msg; t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),ms);
-}
-function openMod(id){ document.getElementById(id).classList.add('open'); }
-function closeMod(id){ document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.mbk').forEach(b=>{
-  b.addEventListener('click',e=>{ if(e.target===b) b.classList.remove('open'); });
-});
-function show(tab){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.slink').forEach(l=>l.classList.remove('on'));
-  document.getElementById('tab-'+tab).classList.add('on');
-  document.querySelectorAll('.slink').forEach(l=>{ if(l.textContent.toLowerCase().includes(tab.slice(0,4))) l.classList.add('on'); });
-  // load data for that tab
-  const loaders={menu:loadMenu,gallery:loadGallery,reviews:loadReviews,articles:loadArticles,press:loadPress,reservations:loadRes,newsletter:loadNL,customers:loadCus};
-  if(loaders[tab]) loaders[tab]();
-  if(tab==='home') loadStats();
-}
-function fmt(d){ return d?new Date(d).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'}):'–'; }
+<!-- Admin JavaScript -->
+<script src="admin.js"></script>
 
-/* ═══════════════════════════════════════════════════
-   AUTH
-═══════════════════════════════════════════════════ */
-async function login(){
-  const email=document.getElementById('ae').value.trim();
-  const pwd=document.getElementById('ap').value;
-  document.getElementById('aerr').textContent='';
-  const {error}=await sb.auth.signInWithPassword({email,password:pwd});
-  if(error){ document.getElementById('aerr').textContent=error.message; return; }
-  document.getElementById('auth').style.display='none';
-  document.getElementById('dash').style.display='flex';
-  loadStats();
-}
-async function logout(){
-  await sb.auth.signOut();
-  location.reload();
-}
-// Check session on load
-sb.auth.getSession().then(({data:{session}})=>{
-  if(session){
-    document.getElementById('auth').style.display='none';
-    document.getElementById('dash').style.display='flex';
-    loadStats();
-  }
-});
-
-/* ═══════════════════════════════════════════════════
-   DASHBOARD STATS
-═══════════════════════════════════════════════════ */
-async function loadStats(){
-  const [m,r,rv,c]=await Promise.all([
-    sb.from('menu_items').select('id',{count:'exact',head:true}),
-    sb.from('reservations').select('id',{count:'exact',head:true}),
-    sb.from('testimonials').select('id',{count:'exact',head:true}),
-    sb.from('customers').select('id',{count:'exact',head:true}),
-  ]);
-  document.getElementById('st1').textContent=m.count??0;
-  document.getElementById('st2').textContent=r.count??0;
-  document.getElementById('st3').textContent=rv.count??0;
-  document.getElementById('st4').textContent=c.count??0;
-}
-
-/* ═══════════════════════════════════════════════════
-   MENU CRUD
-═══════════════════════════════════════════════════ */
-async function loadMenu(){
-  const {data}=await sb.from('menu_items').select('*').order('category');
-  const b=document.getElementById('menuBody');
-  if(!data||!data.length){ b.innerHTML=`<tr><td colspan="8" class="empty">No menu items yet. Click Add Item.</td></tr>`; return; }
-  b.innerHTML=data.map(i=>`
-    <tr>
-      <td><img class="ti" src="${i.image_url||''}" onerror="this.style.display='none'" alt=""></td>
-      <td>${i.name}</td>
-      <td>${i.category}</td>
-      <td>₹${Number(i.price).toFixed(0)}</td>
-      <td><span class="badge ${i.is_available?'y':'n'}">${i.is_available?'Yes':'No'}</span></td>
-      <td><span class="badge ${i.is_signature?'y':'n'}">${i.is_signature?'Yes':'No'}</span></td>
-      <td><span class="badge ${i.is_bestseller?'y':'n'}">${i.is_bestseller?'Yes':'No'}</span></td>
-      <td><div class="ra">
-        <button class="iab ed" onclick='editMenu(${JSON.stringify(i)})'><i class="fas fa-pen"></i></button>
-        <button class="iab dl" onclick="delMenu('${i.id}')"><i class="fas fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('');
-}
-function openMenuModal(){ document.getElementById('mId').value=''; document.getElementById('menuModalTitle').textContent='Add Menu Item'; document.getElementById('mName').value=''; document.getElementById('mCat').value=''; document.getElementById('mPrice').value=''; document.getElementById('mDesc').value=''; document.getElementById('mImg').value=''; document.getElementById('mAvail').checked=true; document.getElementById('mSig').checked=false; document.getElementById('mBS').checked=false; openMod('menuModal'); }
-function editMenu(i){ document.getElementById('mId').value=i.id; document.getElementById('menuModalTitle').textContent='Edit Menu Item'; document.getElementById('mName').value=i.name; document.getElementById('mCat').value=i.category; document.getElementById('mPrice').value=i.price; document.getElementById('mDesc').value=i.description||''; document.getElementById('mImg').value=i.image_url||''; document.getElementById('mAvail').checked=i.is_available; document.getElementById('mSig').checked=i.is_signature; document.getElementById('mBS').checked=i.is_bestseller; openMod('menuModal'); }
-async function saveMenu(){
-  const id=document.getElementById('mId').value;
-  const row={name:document.getElementById('mName').value.trim(),category:document.getElementById('mCat').value.trim(),price:parseFloat(document.getElementById('mPrice').value),description:document.getElementById('mDesc').value.trim(),image_url:document.getElementById('mImg').value.trim(),is_available:document.getElementById('mAvail').checked,is_signature:document.getElementById('mSig').checked,is_bestseller:document.getElementById('mBS').checked};
-  if(!row.name||!row.category||!row.price){ toast('Name, category and price are required.'); return; }
-  const {error}=id?await sb.from('menu_items').update(row).eq('id',id):await sb.from('menu_items').insert(row);
-  if(error){ toast('Error: '+error.message); return; }
-  closeMod('menuModal'); toast(id?'Item updated ✓':'Item added ✓'); loadMenu();
-}
-async function delMenu(id){ if(!confirm('Delete this menu item?')) return; await sb.from('menu_items').delete().eq('id',id); toast('Deleted.'); loadMenu(); }
-
-/* ═══════════════════════════════════════════════════
-   GALLERY CRUD
-═══════════════════════════════════════════════════ */
-async function loadGallery(){
-  const {data}=await sb.from('gallery').select('*').order('created_at',{ascending:false});
-  const g=document.getElementById('galAdm');
-  if(!data||!data.length){ g.innerHTML=`<p class="empty">No gallery images yet.</p>`; return; }
-  g.innerHTML=data.map(i=>`
-    <div class="gi">
-      <img src="${i.image_url}" alt="" onerror="this.src='https://via.placeholder.com/150'">
-      <button class="gdel" onclick="delGal('${i.id}')"><i class="fas fa-trash"></i></button>
-      <span class="gcat">${i.category}</span>
-    </div>`).join('');
-}
-function openGalModal(){ document.getElementById('gUrl').value=''; document.getElementById('gCap').value=''; openMod('galModal'); }
-async function saveGal(){
-  const url=document.getElementById('gUrl').value.trim();
-  if(!url){ toast('Image URL is required.'); return; }
-  const {error}=await sb.from('gallery').insert({image_url:url,caption:document.getElementById('gCap').value.trim(),category:document.getElementById('gCat').value});
-  if(error){ toast('Error: '+error.message); return; }
-  closeMod('galModal'); toast('Image added ✓'); loadGallery();
-}
-async function delGal(id){ if(!confirm('Remove this image?')) return; await sb.from('gallery').delete().eq('id',id); toast('Removed.'); loadGallery(); }
-
-/* ═══════════════════════════════════════════════════
-   REVIEWS CRUD
-═══════════════════════════════════════════════════ */
-async function loadReviews(){
-  const {data}=await sb.from('testimonials').select('*').order('created_at',{ascending:false});
-  const b=document.getElementById('revBody');
-  if(!data||!data.length){ b.innerHTML=`<tr><td colspan="6" class="empty">No reviews yet.</td></tr>`; return; }
-  b.innerHTML=data.map(r=>`
-    <tr>
-      <td>${r.customer_name}</td>
-      <td style="max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.review}</td>
-      <td>${'★'.repeat(r.rating)}</td>
-      <td>${fmt(r.date||r.created_at)}</td>
-      <td><span class="badge ${r.is_approved?'y':'n'}">${r.is_approved?'Approved':'Pending'}</span></td>
-      <td><div class="ra">
-        <button class="iab ap" onclick="toggleApprove('${r.id}',${r.is_approved})">${r.is_approved?'Revoke':'Approve'}</button>
-        <button class="iab ed" onclick='editRev(${JSON.stringify(r)})'><i class="fas fa-pen"></i></button>
-        <button class="iab dl" onclick="delRev('${r.id}')"><i class="fas fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('');
-}
-async function toggleApprove(id,cur){ await sb.from('testimonials').update({is_approved:!cur}).eq('id',id); toast(!cur?'Approved ✓':'Revoked.'); loadReviews(); }
-function openRevModal(){ document.getElementById('rvId').value=''; document.getElementById('revModalTitle').textContent='Add Review'; document.getElementById('rvName').value=''; document.getElementById('rvText').value=''; document.getElementById('rvRating').value='5'; document.getElementById('rvDate').value=''; document.getElementById('rvApproved').checked=true; openMod('revModal'); }
-function editRev(r){ document.getElementById('rvId').value=r.id; document.getElementById('revModalTitle').textContent='Edit Review'; document.getElementById('rvName').value=r.customer_name; document.getElementById('rvText').value=r.review; document.getElementById('rvRating').value=r.rating; document.getElementById('rvDate').value=r.date||''; document.getElementById('rvApproved').checked=r.is_approved; openMod('revModal'); }
-async function saveRev(){
-  const id=document.getElementById('rvId').value;
-  const row={customer_name:document.getElementById('rvName').value.trim(),review:document.getElementById('rvText').value.trim(),rating:parseInt(document.getElementById('rvRating').value),date:document.getElementById('rvDate').value||null,is_approved:document.getElementById('rvApproved').checked};
-  if(!row.customer_name||!row.review){ toast('Name and review are required.'); return; }
-  const {error}=id?await sb.from('testimonials').update(row).eq('id',id):await sb.from('testimonials').insert(row);
-  if(error){ toast('Error: '+error.message); return; }
-  closeMod('revModal'); toast(id?'Review updated ✓':'Review added ✓'); loadReviews();
-}
-async function delRev(id){ if(!confirm('Delete this review?')) return; await sb.from('testimonials').delete().eq('id',id); toast('Deleted.'); loadReviews(); }
-
-/* ═══════════════════════════════════════════════════
-   ARTICLES CRUD
-═══════════════════════════════════════════════════ */
-async function loadArticles(){
-  const {data}=await sb.from('articles').select('*').order('published_at',{ascending:false});
-  const b=document.getElementById('artBody');
-  if(!data||!data.length){ b.innerHTML=`<tr><td colspan="6" class="empty">No articles yet.</td></tr>`; return; }
-  b.innerHTML=data.map(a=>`
-    <tr>
-      <td><img class="ti" src="${a.image_url||''}" onerror="this.style.display='none'" alt=""></td>
-      <td>${a.title}</td>
-      <td>${a.category||'–'}</td>
-      <td>${a.author||'–'}</td>
-      <td>${fmt(a.published_at)}</td>
-      <td><div class="ra">
-        <button class="iab ed" onclick='editArt(${JSON.stringify(a)})'><i class="fas fa-pen"></i></button>
-        <button class="iab dl" onclick="delArt('${a.id}')"><i class="fas fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('');
-}
-function openArtModal(){ document.getElementById('atId').value=''; document.getElementById('artModalTitle').textContent='Add Article'; ['atTitle','atCat','atAuthor','atContent','atImg','atDate'].forEach(id=>document.getElementById(id).value=''); openMod('artModal'); }
-function editArt(a){ document.getElementById('atId').value=a.id; document.getElementById('artModalTitle').textContent='Edit Article'; document.getElementById('atTitle').value=a.title; document.getElementById('atCat').value=a.category||''; document.getElementById('atAuthor').value=a.author||''; document.getElementById('atContent').value=a.content||''; document.getElementById('atImg').value=a.image_url||''; document.getElementById('atDate').value=a.published_at?a.published_at.slice(0,16):''; openMod('artModal'); }
-async function saveArt(){
-  const id=document.getElementById('atId').value;
-  const row={title:document.getElementById('atTitle').value.trim(),category:document.getElementById('atCat').value.trim()||'Food Culture',author:document.getElementById('atAuthor').value.trim()||'Our Team',content:document.getElementById('atContent').value.trim(),image_url:document.getElementById('atImg').value.trim(),published_at:document.getElementById('atDate').value||new Date().toISOString()};
-  if(!row.title||!row.content){ toast('Title and content are required.'); return; }
-  const {error}=id?await sb.from('articles').update(row).eq('id',id):await sb.from('articles').insert(row);
-  if(error){ toast('Error: '+error.message); return; }
-  closeMod('artModal'); toast(id?'Article updated ✓':'Article added ✓'); loadArticles();
-}
-async function delArt(id){ if(!confirm('Delete this article?')) return; await sb.from('articles').delete().eq('id',id); toast('Deleted.'); loadArticles(); }
-
-/* ═══════════════════════════════════════════════════
-   PRESS CRUD
-═══════════════════════════════════════════════════ */
-async function loadPress(){
-  const {data}=await sb.from('press').select('*').order('date',{ascending:false});
-  const b=document.getElementById('presBody');
-  if(!data||!data.length){ b.innerHTML=`<tr><td colspan="5" class="empty">No press entries yet.</td></tr>`; return; }
-  b.innerHTML=data.map(p=>`
-    <tr>
-      <td>${p.title}</td>
-      <td>${p.publication}</td>
-      <td>${fmt(p.date)}</td>
-      <td>${p.link?`<a href="${p.link}" target="_blank" style="color:var(--gold);font-size:.76rem">View →</a>`:'–'}</td>
-      <td><div class="ra">
-        <button class="iab ed" onclick='editPres(${JSON.stringify(p)})'><i class="fas fa-pen"></i></button>
-        <button class="iab dl" onclick="delPres('${p.id}')"><i class="fas fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('');
-}
-function openPresModal(){ document.getElementById('prId').value=''; document.getElementById('presModalTitle').textContent='Add Press Entry'; ['prTitle','prPub','prDate','prLink'].forEach(id=>document.getElementById(id).value=''); openMod('presModal'); }
-function editPres(p){ document.getElementById('prId').value=p.id; document.getElementById('presModalTitle').textContent='Edit Entry'; document.getElementById('prTitle').value=p.title; document.getElementById('prPub').value=p.publication; document.getElementById('prDate').value=p.date||''; document.getElementById('prLink').value=p.link||''; openMod('presModal'); }
-async function savePres(){
-  const id=document.getElementById('prId').value;
-  const row={title:document.getElementById('prTitle').value.trim(),publication:document.getElementById('prPub').value.trim(),date:document.getElementById('prDate').value||null,link:document.getElementById('prLink').value.trim()||null};
-  if(!row.title||!row.publication){ toast('Title and publication are required.'); return; }
-  const {error}=id?await sb.from('press').update(row).eq('id',id):await sb.from('press').insert(row);
-  if(error){ toast('Error: '+error.message); return; }
-  closeMod('presModal'); toast(id?'Entry updated ✓':'Entry added ✓'); loadPress();
-}
-async function delPres(id){ if(!confirm('Delete this entry?')) return; await sb.from('press').delete().eq('id',id); toast('Deleted.'); loadPress(); }
-
-/* ═══════════════════════════════════════════════════
-   RESERVATIONS (view + status)
-═══════════════════════════════════════════════════ */
-async function loadRes(){
-  const {data}=await sb.from('reservations').select('*').order('date',{ascending:false});
-  const b=document.getElementById('resBody');
-  if(!data||!data.length){ b.innerHTML=`<tr><td colspan="8" class="empty">No reservations yet.</td></tr>`; return; }
-  b.innerHTML=data.map(r=>`
-    <tr>
-      <td>${r.name}</td>
-      <td>${r.email}</td>
-      <td>${fmt(r.date)}</td>
-      <td>${r.time||'–'}</td>
-      <td>${r.guests}</td>
-      <td style="max-width:160px;font-size:.78rem;color:var(--mt)">${r.special_requests||'–'}</td>
-      <td><span class="badge ${r.status==='confirmed'?'conf':r.status==='cancelled'?'canc':'pend'}">${r.status}</span></td>
-      <td><div class="ra">
-        <button class="iab st" onclick="setResStatus('${r.id}','confirmed')">Confirm</button>
-        <button class="iab dl" onclick="setResStatus('${r.id}','cancelled')">Cancel</button>
-      </div></td>
-    </tr>`).join('');
-}
-async function setResStatus(id,status){ await sb.from('reservations').update({status}).eq('id',id); toast('Status updated.'); loadRes(); }
-
-/* ═══════════════════════════════════════════════════
-   NEWSLETTER
-═══════════════════════════════════════════════════ */
-async function loadNL(){
-  const {data}=await sb.from('newsletter').select('*').order('subscribed_at',{ascending:false});
-  const b=document.getElementById('nlBody');
-  if(!data||!data.length){ b.innerHTML=`<tr><td colspan="3" class="empty">No subscribers yet.</td></tr>`; return; }
-  b.innerHTML=data.map(n=>`
-    <tr>
-      <td>${n.email}</td>
-      <td>${fmt(n.subscribed_at)}</td>
-      <td><button class="iab dl" onclick="delNL('${n.id}')"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join('');
-}
-async function delNL(id){ if(!confirm('Remove subscriber?')) return; await sb.from('newsletter').delete().eq('id',id); toast('Removed.'); loadNL(); }
-
-/* ═══════════════════════════════════════════════════
-   CUSTOMERS
-═══════════════════════════════════════════════════ */
-async function loadCus(){
-  const {data}=await sb.from('customers').select('*').order('created_at',{ascending:false});
-  const b=document.getElementById('cusBody');
-  if(!data||!data.length){ b.innerHTML=`<tr><td colspan="4" class="empty">No customers yet.</td></tr>`; return; }
-  b.innerHTML=data.map(c=>`
-    <tr>
-      <td>${c.email}</td>
-      <td>${c.name||'–'}</td>
-      <td>${fmt(c.created_at)}</td>
-      <td><button class="iab dl" onclick="delCus('${c.id}')"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join('');
-}
-async function delCus(id){ if(!confirm('Remove this customer?')) return; await sb.from('customers').delete().eq('id',id); toast('Removed.'); loadCus(); }
-</script>
 </body>
 </html>
