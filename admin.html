@@ -212,9 +212,10 @@
     <input type="hidden" id="m-id">
     <div class="modal-field"><label>Item Name *</label><input type="text"   id="m-name"  placeholder="e.g. Butter Chicken"></div>
     <div class="two-col">
-      <div class="modal-field"><label>Category *</label><input type="text"   id="m-cat"   placeholder="e.g. Main Course"></div>
+      <div class="modal-field"><label>Category *</label><input type="text" id="m-cat" list="m-cat-list" placeholder="e.g. Main Course"></div>
       <div class="modal-field"><label>Price (₹) *</label><input type="number" id="m-price" placeholder="450"></div>
     </div>
+    <datalist id="m-cat-list"></datalist>
     <div class="modal-field"><label>Description</label><textarea id="m-desc" placeholder="Short dish description…"></textarea></div>
     <div class="modal-field"><label>Image URL</label><input type="url" id="m-img" placeholder="https://your-image-url.com/dish.jpg"></div>
     <div class="check-row">

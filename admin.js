@@ -120,6 +120,7 @@ async function loadMenu() {
   const body = document.getElementById('menuBody');
   if (!data || !data.length) {
     body.innerHTML = `<tr><td colspan="8" class="empty">No menu items yet. Click Add Item to create one.</td></tr>`;
+    populateCategoryDatalist([]);
     return;
   }
   body.innerHTML = data.map(i => `
@@ -136,6 +137,15 @@ async function loadMenu() {
         <button class="action-btn delete" onclick="deleteMenu('${i.id}')"><i class="fas fa-trash"></i></button>
       </div></td>
     </tr>`).join('');
+  const { data: categories } = await sb.from('menu_items').select('category').order('id', { ascending: false }).limit(50);
+  populateCategoryDatalist(categories || []);
+}
+
+function populateCategoryDatalist(items) {
+  const list = document.getElementById('m-cat-list');
+  if (!list) return;
+  const categories = [...new Set((items || []).map(i => i.category).filter(Boolean))].slice(0, 13);
+  list.innerHTML = categories.map(c => `<option value="${c}">`).join('');
 }
 
 function openMenuModal() {
