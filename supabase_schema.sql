@@ -8,7 +8,7 @@
 --  TABLE 1: CUSTOMERS (login popup data)
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS customers (
-  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id         SERIAL PRIMARY KEY,
   email      TEXT UNIQUE NOT NULL,
   name       TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS customers (
 --  is_bestseller → shows in Best Sellers section
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS menu_items (
-  id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id           SERIAL PRIMARY KEY,
   name         TEXT NOT NULL,
   description  TEXT,
   price        DECIMAL(10,2) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
 --  category → 'store' or 'infrastructure'
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS gallery (
-  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id         SERIAL PRIMARY KEY,
   image_url  TEXT NOT NULL,
   caption    TEXT,
   category   TEXT DEFAULT 'store',   -- 'store' or 'infrastructure'
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS gallery (
 --  is_approved → only approved reviews show on site
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS testimonials (
-  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id            SERIAL PRIMARY KEY,
   customer_name TEXT NOT NULL,
   review        TEXT NOT NULL,
   rating        INTEGER DEFAULT 5 CHECK (rating BETWEEN 1 AND 5),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS testimonials (
 --  TABLE 5: ARTICLES (Food Blog)
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS articles (
-  id           UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id           SERIAL PRIMARY KEY,
   title        TEXT NOT NULL,
   content      TEXT,
   image_url    TEXT,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS articles (
 --  TABLE 6: PRESS & RECOGNITION
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS press (
-  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id          SERIAL PRIMARY KEY,
   title       TEXT NOT NULL,
   publication TEXT NOT NULL,
   date        DATE DEFAULT CURRENT_DATE,
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS press (
 --  status → 'pending', 'confirmed', 'cancelled'
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS reservations (
-  id               UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id               SERIAL PRIMARY KEY,
   name             TEXT NOT NULL,
   email            TEXT NOT NULL,
   date             DATE NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS reservations (
 --  TABLE 8: NEWSLETTER SUBSCRIBERS
 -- ════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS newsletter (
-  id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id            SERIAL PRIMARY KEY,
   email         TEXT UNIQUE NOT NULL,
   subscribed_at TIMESTAMPTZ DEFAULT NOW()
 );

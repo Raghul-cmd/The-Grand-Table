@@ -8,8 +8,8 @@
 /* ══════════════════════════════════════════════════════════════
    SECTION 1: SUPABASE CONFIGURATION
 ══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL  = 'YOUR_SUPABASE_URL_HERE';
-const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY_HERE';
+const SUPABASE_URL  = 'https://afyxyowonhvwbwtdcrkt.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmeXh5b3dvbmh2d2J3dGRjcmt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MTQxNTgsImV4cCI6MjA5ODI5MDE1OH0.A5_hda9PAbATb0J_gD9bTl9O6VXatHcKV25hE4nXupY';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 /* ══════════════════════════════════════════════════════════════
