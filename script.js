@@ -216,9 +216,10 @@ async function loadMenu() {
 
   allMenuItems = data || [];
 
-  const categoryOrder = ['salads', 'soups', 'breads', 'starters', 'sidedish', 'gravys', 'rice', 'thali', 'biryani', 'friedrice', 'noodles', 'drinks', 'desserts'];
+  const categoryOrder = ['salads', 'soups', 'breads', 'starters', 'side dish', 'gravys', 'meals', 'thali', 'biryani', 'fried rice', 'noodles', 'drinks', 'desserts'];
+  const normalizeCategory = (cat) => (cat || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
   const getCategoryIndex = (cat) => {
-    const idx = categoryOrder.indexOf((cat || '').toLowerCase());
+    const idx = categoryOrder.indexOf(normalizeCategory(cat));
     return idx === -1 ? categoryOrder.length : idx;
   };
 
