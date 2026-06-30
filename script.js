@@ -216,7 +216,7 @@ async function loadMenu() {
 
   allMenuItems = data || [];
 
-  const categoryOrder = ['Salads', 'Soups', 'Breads', 'Starters', 'SideDish', 'Gravys', 'Rice', 'Thali', 'Biryani', 'FriedRice', 'Noodles', 'Drinks','Desserts'];
+  const categoryOrder = ['salads', 'soups', 'breads', 'starters', 'sidedish', 'gravys', 'rice', 'thali', 'biryani', 'friedrice', 'noodles', 'drinks', 'desserts'];
   const getCategoryIndex = (cat) => {
     const idx = categoryOrder.indexOf((cat || '').toLowerCase());
     return idx === -1 ? categoryOrder.length : idx;
