@@ -468,8 +468,6 @@ async function loadTestimonials() {
     </div>`).join('');
 
   sliderIndex = 0;
-  const visible  = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
-  updateSliderArrows(Math.max(0, data.length - visible));
 }
 
 function slide(direction) {
@@ -480,21 +478,15 @@ function slide(direction) {
   const visible  = window.innerWidth < 700 ? 1 : window.innerWidth < 900 ? 2 : 3;
   const maxIndex = Math.max(0, cards.length - visible);
 
-  if (maxIndex === 0) return; // not enough reviews to slide — add more in Admin Panel
+  if (maxIndex === 0) return; // only happens if reviews <= visible slots
 
-  sliderIndex = Math.max(0, Math.min(sliderIndex + direction, maxIndex));
+  // Loop around instead of stopping at the ends
+  sliderIndex += direction;
+  if (sliderIndex > maxIndex) sliderIndex = 0;
+  if (sliderIndex < 0) sliderIndex = maxIndex;
+
   const cardWidth = cards[0].offsetWidth + 22;
   track.style.transform = `translateX(-${sliderIndex * cardWidth}px)`;
-  updateSliderArrows(maxIndex);
-}
-
-function updateSliderArrows(maxIndex) {
-  const btns = document.querySelectorAll('.slider-nav .sl-btn');
-  if (btns.length < 2) return;
-  btns[0].style.opacity = sliderIndex === 0 ? '.3' : '1';
-  btns[0].style.pointerEvents = sliderIndex === 0 ? 'none' : 'auto';
-  btns[1].style.opacity = sliderIndex >= maxIndex ? '.3' : '1';
-  btns[1].style.pointerEvents = sliderIndex >= maxIndex ? 'none' : 'auto';
 }
 
 /* ══════════════════════════════════════════════════════════════
