@@ -8,8 +8,8 @@
    SECTION 1: SUPABASE CONFIGURATION
    Get these from: supabase.com → Your Project → Settings → API
 ══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL  = 'YOUR_SUPABASE_URL_HERE';
-const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY_HERE';
+const SUPABASE_URL  = 'https://jwiwollnpjqskthrfnsc.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3aXdvbGxucGpxc2t0aHJmbnNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MDIwMzcsImV4cCI6MjA5ODM3ODAzN30.9ysuA-JzaKxTs6AZvXNJNAsbRtm9m5mjZOqmyW92BlU';
 
 /* ══════════════════════════════════════════════════════════════
    SECTION 2: STORE LOCATIONS
